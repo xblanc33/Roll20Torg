@@ -22,12 +22,13 @@ on("chat:message", function(msg) {
             let paramList = msg.content.split(',');
             paramList.shift();
             let res = attackNPC(...paramList);
+            sendResultToChat(msg.who, res);
         }
         if (msg.content.indexOf("!tAttackPlayer") !== -1) {
             let paramList = msg.content.split(',');
             paramList.shift();
             let res = attackPlayer(...paramList);
-            sendResultToChat(msg.who, res)
+            sendResultToChat(msg.who, res);
         }
     }
 });
@@ -117,7 +118,7 @@ function diceToScore(dice) {
     return 16;
 }
 
-function attackNPC(attackerName, attackerSkill, difficulty, targetName, weaponModifier, weaponMax, targetToughness) {
+function attackNPC(attackerSkill, difficulty, tokenId, weaponModifier, weaponMax, tokenToughness) {
     let result = {};
     let score = rollTorgScore();
     if (isSuccess(score, attackerSkill, difficulty)) {
@@ -162,7 +163,7 @@ function computeDommagePossibilite(weaponModifier, weaponMax, score, playerTough
 }
 
 function margeToDamageForCharacterWithPossibility(marge) {
-    if (marge <= 0) {
+    if (marge < 0) {
         return ["Aucun dommage"];
     }
     if (marge <= 1) {
@@ -212,26 +213,29 @@ function margeToDamageForCharacterWithPossibility(marge) {
 }
 
 function margeToDamageForNormCharacter(marge) {
-    if (marge <= 0) {
+    if (marge < 0) {
         return ["Aucun dommage"];
     }
-    if (marge <= 1) {
+    if (mage == 0) {
         return ["Dommage : 1"];
     }
-    if (marge <= 2) {
+    if (marge <= 1) {
         return ["Dommage : O 1"];
     }
-    if (marge <= 3) {
+    if (marge <= 2) {
         return ["Dommage : K 1"];
     }
-    if (marge <= 4) {
-        return ["Dommage : 2"];
-    }
-    if (marge <= 5) {
+    if (marge <= 3) {
         return ["Dommage : O 2"];
     }
+    if (marge <= 4) {
+        return ["Dommage : O 3"];
+    }
+    if (marge <= 5) {
+        return ["Dommage : K 3"];
+    }
     if (marge <= 6) {
-        return ["Dommage : Chute O 2"];
+        return ["Dommage : Chute K/O 2"];
     }
     if (marge <= 8) {
         return ["Dommage : Chute K 2"];
