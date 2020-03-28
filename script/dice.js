@@ -296,7 +296,7 @@ function sendResultToChat(who, result) {
         
     }
 
-    sendChat("",who + " " + Content); 
+    sendChat("",Content); 
 
 
 /*
