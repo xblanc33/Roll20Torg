@@ -299,5 +299,18 @@ function sendResultToChat(who, result) {
         }
     }
 
+<<<<<<< HEAD
     sendChat("",who + " " + Content); 
+=======
+    sendChat("",Content); 
+
+
+/*
+    //TODO Fred
+    sendChat(who, result.title);
+    if (result.infoList != undefined) {
+        result.infoList.forEach(info => sendChat(who, info));
+    }
+*/
+>>>>>>> 3fe3edcecbc8fc0589c7fab3e11d16c8dcd63540
 }
