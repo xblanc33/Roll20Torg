@@ -144,7 +144,7 @@ function attackPlayer(attackerSkill, difficulty, playerName, weaponModifier, wea
         log('success attack');
         result.title = `${playerName} a été touché`;
         result.infoList = [["Score obtenu",score]];
-        result.infoList.push(...computeDommagePossibilite(weaponModifier, weaponMax, score, playerToughness));
+        result.infoList.push(...computeDamagePossibilite(weaponModifier, weaponMax, score, playerToughness));
     } else {
         log('failed attack');
         result.title = `${playerName} a esquivé l'attaque`;
@@ -157,8 +157,8 @@ function isSuccess(score, skill, difficulty) {
     return ((score + skill) >= difficulty);
 }
 
-function computeDommagePossibilite(weaponModifier, weaponMax, score, playerToughness) {
-    let marge = Math.max(weaponModifier + score , weaponMax) - playerToughness;
+function computeDamagePossibilite(weaponModifier, weaponMax, score, playerToughness) {
+    let marge = Math.min(weaponModifier + score , weaponMax) - playerToughness;
     return margeToDamageForCharacterWithPossibility(marge);
 }
 
@@ -299,18 +299,5 @@ function sendResultToChat(who, result) {
         }
     }
 
-<<<<<<< HEAD
-    sendChat("",who + " " + Content); 
-=======
-    sendChat("",Content); 
-
-
-/*
-    //TODO Fred
-    sendChat(who, result.title);
-    if (result.infoList != undefined) {
-        result.infoList.forEach(info => sendChat(who, info));
-    }
-*/
->>>>>>> 3fe3edcecbc8fc0589c7fab3e11d16c8dcd63540
+    sendChat(who,Content); 
 }
