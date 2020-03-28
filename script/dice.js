@@ -3,12 +3,16 @@ on("chat:message", function(msg) {
         log(msg.content);
         if(msg.content.indexOf("!tDice") !== -1) {
             let dice = rollTorgDice().toString();
-            sendChat(msg.who, dice);
+            sendResultToChat(msg.who, dice);
         }
         if(msg.content.indexOf("!tScore") !== -1) {
             let dice = rollTorgDice();
             let score = diceToScore(dice).toString();
-            sendChat(msg.who, score);
+            sendResultToChat(msg.who, score);
+        }
+        if (msg.content.indexOf("tAttackNPC") !== -1) {
+            let paramList = msg.content.split(',');
+
         }
     }
 });
@@ -102,14 +106,33 @@ function attackNPC(attackerName, attackerSkill, difficulty, targetName, weaponMo
     let result = {};
     let score = rollTorgScore();
     if (isSuccess(score, attackerSkill, difficulty)) {
+        res.success = true;
 
     } else {
         result.success = false;
         
     }
+    return result;
+}
 
+function attackPlayer(attackerSkill, difficulty, playerName, weaponModifier, weaponMax, playerToughness) {
+    let result = {};
+    let score = rollTorgScore();
+    if (isSuccess(score, attackerSkill, difficulty)) {
+        res.success = true;
+
+    } else {
+        result.success = false;
+        
+    }
+    return result;
 }
 
 function isSuccess(score, skill, difficulty) {
-    return score + skill >= difficulty;
+    return ((score + skill) >= difficulty);
+}
+
+function sendResultToChat(who, result) {
+    //TODO Fred
+    sendChat(who, result);
 }
