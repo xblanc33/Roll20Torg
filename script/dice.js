@@ -18,13 +18,12 @@ on("chat:message", function(msg) {
             }
             sendResultToChat(msg.who, res);
         }
-        if (msg.content.indexOf("tAttackNPC") !== -1) {
+        if (msg.content.indexOf("!tAttackNPC") !== -1) {
             let paramList = msg.content.split(',');
             paramList.shift();
-            attackNPC(...paramList);
-
+            let res = attackNPC(...paramList);
         }
-        if (msg.content.indexOf("tAttackPlayer") !== -1) {
+        if (msg.content.indexOf("!tAttackPlayer") !== -1) {
             let paramList = msg.content.split(',');
             paramList.shift();
             let res = attackPlayer(...paramList);
@@ -142,13 +141,11 @@ function attackPlayer(attackerSkill, difficulty, playerName, weaponModifier, wea
     let score = rollTorgScore();
     if (isSuccess(score, attackerSkill, difficulty)) {
         log('success attack');
-        result.success = false;
         result.title = `${playerName} a été touché`;
         result.infoList = ["Scoce obtenu: "+score];
         result.infoList.push(...computeDommagePossibilite(weaponModifier, weaponMax, score, playerToughness));
     } else {
         log('failed attack');
-        result.success = true;
         result.title = `${playerName} a esquivé l'attaque`;
         result.infoList = ["Scoce obtenu: "+score];
     }
@@ -161,6 +158,60 @@ function isSuccess(score, skill, difficulty) {
 
 function computeDommagePossibilite(weaponModifier, weaponMax, score, playerToughness) {
     let marge = Math.max(weaponModifier + score , weaponMax) - playerToughness;
+    return margeToDamageForCharacterWithPossibility(marge);
+}
+
+function margeToDamageForCharacterWithPossibility(marge) {
+    if (marge <= 0) {
+        return ["Aucun dommage"];
+    }
+    if (marge <= 1) {
+        return ["Dommage : 1"];
+    }
+    if (marge <= 2) {
+        return ["Dommage : O 1"];
+    }
+    if (marge <= 3) {
+        return ["Dommage : K 1"];
+    }
+    if (marge <= 4) {
+        return ["Dommage : 2"];
+    }
+    if (marge <= 5) {
+        return ["Dommage : O 2"];
+    }
+    if (marge <= 6) {
+        return ["Dommage : Chute O 2"];
+    }
+    if (marge <= 8) {
+        return ["Dommage : Chute K 2"];
+    }
+    if (marge <= 9) {
+        return ["Dommage : Bls : K 3"];
+    }
+    if (marge <= 10) {
+        return ["Dommage : Bls : K 4"];
+    }
+    if (marge <= 11) {
+        return ["Dommage : Bls O 4"];
+    }
+    if (marge <= 12) {
+        return ["Dommage : Bls K 5"];
+    }
+    if (marge <= 13) {
+        return ["Dommage : 2 Bls O 4"];
+    }
+    if (marge <= 14) {
+        return ["Dommage : 2 Bls KO 5"];
+    }
+    if (marge <= 15) {
+        return ["Dommage : 3 Bls KO 5"];
+    }
+    let nbBls = 3 + Math.floor(((marge - 16)/2));
+    return["Dommage : "+nbBls+" Bls KO 5"];
+}
+
+function margeToDamageForNormCharacter(marge) {
     if (marge <= 0) {
         return ["Aucun dommage"];
     }
