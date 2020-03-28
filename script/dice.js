@@ -120,13 +120,35 @@ function diceToScore(dice) {
 
 function attackNPC(attackerSkill, difficulty, tokenId, weaponModifier, weaponMax, tokenToughness) {
     let result = {};
+    attackerSkill = attackerSkill.split('+').reduce( (prev,cur) => prev+parseInt(cur),0);
+    difficulty = parseInt(difficulty);
+    weaponModifier = parseInt(weaponModifier);
+    weaponMax = parseInt(weaponMax);
+    tokenToughness = parseInt(tokenToughness);
+    tokenId = tokenId.trim();
+
+    log(tokenId);
+    let npcToken = getObj("graphic",tokenId);
+    log(npcToken);
+    let npcId = npcToken.get("represents");
+    let targetHasPossibility = parseInt(getAttrByName(npcId, "Possib")) > 0;
+    let npcName = getAttrByName(npcId,"Name");
+    log(targetHasPossibility);
+
     let score = rollTorgScore();
     if (isSuccess(score, attackerSkill, difficulty)) {
-        res.success = true;
-
+        result.title = `${npcName} a été touché`;
+        result.infoList = [["Score obtenu",score]];
+        let damage;
+        if (targetHasPossibility) {
+            damage = computeDamagePossibilite(weaponModifier, weaponMax, score, tokenToughness);
+        } else {
+            damage = computeDamageNorm(weaponModifier, weaponMax, score, tokenToughness);
+        }
+        result.infoList.push(damageToInfoList(damage));
     } else {
-        result.success = false;
-        
+        result.title = `${npcName} a esquivé l'attaque`;
+        result.infoList = [["Score obtenu",score]];
     }
     return result;
 }
@@ -144,7 +166,9 @@ function attackPlayer(attackerSkill, difficulty, playerName, weaponModifier, wea
         log('success attack');
         result.title = `${playerName} a été touché`;
         result.infoList = [["Score obtenu",score]];
-        result.infoList.push(...computeDamagePossibilite(weaponModifier, weaponMax, score, playerToughness));
+        let damage = computeDamagePossibilite(weaponModifier, weaponMax, score, playerToughness);
+        log(JSON.stringify(damage));
+        result.infoList.push(damageToInfoList(damage));
     } else {
         log('failed attack');
         result.title = `${playerName} a esquivé l'attaque`;
@@ -162,108 +186,203 @@ function computeDamagePossibilite(weaponModifier, weaponMax, score, playerToughn
     return margeToDamageForCharacterWithPossibility(marge);
 }
 
-function margeToDamageForCharacterWithPossibility(marge) {
-    if (marge < 0) {
-        return [["!","Aucun dommage"]];
-    }
-    if (marge <= 1) {
-        return [["Dommage","1"]];
-    }
-    if (marge <= 2) {
-        return [["Dommage","O 1"]];
-    }
-    if (marge <= 3) {
-        return [["Dommage","K 1"]];
-    }
-    if (marge <= 4) {
-        return [["Dommage","2"]];
-    }
-    if (marge <= 5) {
-        return [["Dommage","O 2"]];
-    }
-    if (marge <= 6) {
-        return [["Dommage","Chute O 2"]];
-    }
-    if (marge <= 8) {
-        return [["Dommage","Chute K 2"]];
-    }
-    if (marge <= 9) {
-        return [["Dommage","Bls : K 3"]];
-    }
-    if (marge <= 10) {
-        return [["Dommage","Bls : K 4"]];
-    }
-    if (marge <= 11) {
-        return [["Dommage","Bls O 4"]];
-    }
-    if (marge <= 12) {
-        return [["Dommage","Bls K 5"]];
-    }
-    if (marge <= 13) {
-        return [["Dommage","2 Bls O 4"]];
-    }
-    if (marge <= 14) {
-        return [["Dommage","2 Bls KO 5"]];
-    }
-    if (marge <= 15) {
-        return [["Dommage","3 Bls KO 5"]];
-    }
-    let nbBls = 3 + Math.floor(((marge - 16)/2));
-    return[["Dommage",nbBls+" Bls KO 5"]];
+function computeDamageNorm(weaponModifier, weaponMax, score, playerToughness) {
+    let marge = Math.min(weaponModifier + score , weaponMax) - playerToughness;
+    return margeToDamageForNormCharacter(marge);
 }
 
-function margeToDamageForNormCharacter(marge) {
-    if (marge <= 0) {
-        return [["!","Aucun dommage"]];
+function margeToDamageForCharacterWithPossibility(marge) {
+    let damage = {
+        K: false,
+        O:false,
+        bls:0,
+        choc:0,
+        chute:false
     }
-    if (marge <= 1) {
-        return [["Dommage","1"]];
+    if (marge == 1) {
+        damage.choc = 1;
     }
-    if (marge <= 2) {
-        return [["Dommage","O 1"]];
+    if (marge == 2) {
+        damage.choc = 1;
+        damage.O = true;
     }
-    if (marge <= 3) {
-        return [["Dommage","K 1"]];
+    if (marge == 3) {
+        damage.choc = 1;
+        damage.K = true;
     }
-    if (marge <= 3) {
-        return ["Dommage : O 2"];
+    if (marge == 4) {
+        damage.choc = 2;
     }
-    if (marge <= 4) {
-        return [["Dommage","2"]];
+    if (marge == 5) {
+        damage.choc = 2;
+        damage.O = true;
     }
-    if (marge <= 5) {
-        return [["Dommage","O 2"]];
+    if ((marge == 6) || (marge == 7)) {
+        damage.choc = 2;
+        damage.O = true;
+        damage.chute = true;
     }
-    if (marge <= 6) {
-        return [["Dommage","Chute O 2"]];
+    if (marge == 8) {
+        damage.choc = 2;
+        damage.K = true;
+        damage.chute = true;
     }
-    if (marge <= 8) {
-        return [["Dommage","Chute K 2"]];
+    if (marge == 9) {
+        damage.choc = 3;
+        damage.K = true;
+        damage.bls = 1;
     }
-    if (marge <= 9) {
-        return [["Dommage","Bls : K 3"]];
+    if (marge == 10) {
+        damage.choc = 4;
+        damage.K = true;
+        damage.bls = 1;
     }
-    if (marge <= 10) {
-        return [["Dommage","Bls : K 4"]];
+    if (marge == 11) {
+        damage.choc = 4;
+        damage.O = true;
+        damage.bls = 1;
     }
-    if (marge <= 11) {
-        return [["Dommage","Bls O 4"]];
+    if (marge == 12) {
+        damage.choc = 5;
+        damage.K = true;
+        damage.bls = 1;
     }
-    if (marge <= 12) {
-        return [["Dommage","Bls K 5"]];
+    if (marge == 13) {
+        damage.choc = 4;
+        damage.O = true;
+        damage.bls = 2;
     }
-    if (marge <= 13) {
-        return [["Dommage","2 Bls O 4"]];
+    if (marge == 14) {
+        damage.choc = 5;
+        damage.K = true;
+        damage.O = true;
+        damage.bls = 2;
     }
-    if (marge <= 14) {
-        return [["Dommage","2 Bls KO 5"]];
+    if (marge == 15) {
+        damage.choc = 5;
+        damage.K = true;
+        damage.O = true;
+        damage.bls = 3;
     }
-    if (marge <= 15) {
-        return [["Dommage","3 Bls KO 5"]];
+    if (marge > 15) {
+        let nbBls = 3 + Math.floor(((marge - 16)/2));
+        damage.choc = 5;
+        damage.K = true;
+        damage.O = true;
+        damage.bls = nbBls;
     }
-    let nbBls = 3 + Math.floor(((marge - 16)/2));
-    return[["Dommage",nbBls+" Bls KO 5"]];
+    return damage;
 }
+
+
+function margeToDamageForNormCharacter(marge) {
+    let damage = {
+        K: false,
+        O:false,
+        bls:0,
+        choc:0,
+        chute:false
+    }
+    if (marge == 0) {
+        damage.choc = 1;
+    }
+    if (marge == 1) {
+        damage.choc = 1;
+    }
+    if (marge == 2) {
+        damage.choc = 1;
+        damage.O = true;
+    }
+    if (marge == 3) {
+        damage.choc = 1;
+        damage.K = true;
+    }
+    if (marge == 4) {
+        damage.choc = 2;
+    }
+    if (marge == 5) {
+        damage.choc = 2;
+        damage.O = true;
+    }
+    if ((marge == 6) || (marge == 7)) {
+        damage.choc = 2;
+        damage.O = true;
+        damage.chute = true;
+    }
+    if (marge == 8) {
+        damage.choc = 2;
+        damage.K = true;
+        damage.chute = true;
+    }
+    if (marge == 9) {
+        damage.choc = 3;
+        damage.K = true;
+        damage.bls = 1;
+    }
+    if (marge == 10) {
+        damage.choc = 4;
+        damage.K = true;
+        damage.bls = 1;
+    }
+    if (marge == 11) {
+        damage.choc = 4;
+        damage.O = true;
+        damage.bls = 1;
+    }
+    if (marge == 12) {
+        damage.choc = 5;
+        damage.K = true;
+        damage.bls = 1;
+    }
+    if (marge == 13) {
+        damage.choc = 4;
+        damage.O = true;
+        damage.bls = 2;
+    }
+    if (marge == 14) {
+        damage.choc = 5;
+        damage.K = true;
+        damage.O = true;
+        damage.bls = 2;
+    }
+    if (marge == 15) {
+        damage.choc = 5;
+        damage.K = true;
+        damage.O = true;
+        damage.bls = 3;
+    }
+    if (marge > 15) {
+        let nbBls = 3 + Math.floor(((marge - 16)/2));
+        damage.choc = 5;
+        damage.K = true;
+        damage.O = true;
+        damage.bls = nbBls;
+    }
+    return damage;
+}
+
+function damageToInfoList(damage) {
+    if (damage.choc == 0) {
+        return ["!","Aucun dommage"];
+    } else {
+        let damageString = "";
+        if (damage.bls > 0) {
+            damageString += damage.bls+" Bls ";
+        }
+        if (damage.chute) {
+            damageString += "Chute ";
+        }
+        if (damage.K) {
+            damageString += "K";
+        }
+        if (damage.O) {
+            damageString += "O";
+        }
+        damageString += " "+damage.choc;
+        return ["Dommage",damageString];
+    }
+}
+
 
 function sendResultToChat(who, result) {
     const TORG_COLOR="#e7f106";
