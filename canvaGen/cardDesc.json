@@ -1,0 +1,336 @@
+[
+    {
+        "titre":["Adrénaline"],
+        "desc":[
+            "+ 3 au score de",
+            "Dextérité, de Force",
+            "d’Endurance ou d'une",
+            "compétence apparentée."
+        ],
+        "nombre":16,
+        "mj":false
+    },
+    {
+        "titre":["Volonté"],
+        "desc":[
+            "+3 au score de Perception,",
+            "de Raison ou d’une ",
+            "compétence apparentée."
+        ],
+        "nombre":16,
+        "mj":false
+    },
+    {
+        "titre":["Action"],
+        "desc":[
+            "+3 au bonus de n’importe",
+            "quelle action."
+        ],
+        "nombre":8,
+        "mj":false
+    },
+    {
+        "titre":["Vivacité"],
+        "desc":[
+            "Vous gagnez une action",
+            "supplémentaire à n’importe",
+            "quel moment du round."
+        ],
+        "nombre":10,
+        "mj":false
+    },
+    {
+        "titre":["Plan génial"],
+        "desc":[
+            "Vous pouvez récupérer",
+            "une carte qui vient",
+            "d’être défaussée en",
+            "échange de celle-ci."
+        ],
+        "nombre":6,
+        "mj":false
+    },
+    {
+        "titre": ["Initiative"],
+        "desc":[
+            "Vous pouvez laisser la",
+            "carte actuelle sur la pile",
+            "d’action pour le round",
+            "suivant, ou retourner une",
+            "nouvelle carte pour",
+            "ce round-ci."
+        ],
+        "nombre":4,
+        "mj":false
+    },
+    {
+        "titre": ["Héros"],
+        "desc": [
+            "Cette carte peut être",
+            "jouée comme une",
+            "Possibilités",
+            "supplémentaire."
+        ],
+        "nombre":10,
+        "mj":false
+    },
+    {
+        "titre": [
+            "Echec de",
+            "l'adersaire"
+        ],
+        "desc": [
+            "Cette carte annule",
+            "une action réussie de",
+            "l’adversaire contre vous."
+        ],
+        "nombre":4,
+        "mj":false
+    },
+    {
+        "titre": ["Ralliement"],
+        "desc": [
+            "Tous les joueurs peuvent",
+            "jeter leur main et",
+            "en piocher une nouvelle."
+        ],
+        "nombre":1,
+        "mj":false
+    },
+    {
+        "titre":["Seconde","Chance"],
+        "desc":[
+            "Vous pouvez",
+            "immédiatement",
+            "recommencer une action",
+            "que vous venez juste",
+            "de manquer"
+        ],
+        "nombre":5,
+        "mj":false
+    },
+    {
+        "titre":["Idée"],
+        "desc":[
+            "Utilisez cette carte pour",
+            "obtenir un indice",
+            "vous indiquant",
+            "le meilleur choix pour",
+            "votre prochaine action"
+        ],
+        "nombre": 4,
+        "mj":false
+    },
+    {
+        "titre":["Gloire"],
+        "desc":[
+            "Jouez cette carte après",
+            "avoir obtenu un résultat",
+            "de 60 ou plus. Elle ",
+            "augmentera l’expérience",
+            "acquise au cours de",
+            "l’aventure de",
+            "trois Possibilités."
+        ],
+        "nombre":4,
+        "mj":false
+    },
+    {
+        "titre":["Monologue"],
+        "desc":[
+            "Toutes les actions hostiles",
+            "cessent pendant que vous",
+            "prononcez un discours",
+            "dramatique."
+        ],
+        "nombre":1,
+        "mj":false
+    },
+    {
+        "titre":["Présence"],
+        "desc":[
+            "Ajoutez +3 au score de",
+            "charisme, d’esprit ou ",
+            "d’une compétence",
+            "apparentée."
+        ],
+        "nombre":16,
+        "mj":false
+    },
+    {
+        "titre":["Coup","de Grâce"],
+        "desc":[
+            "Cette carte vous permet",
+            "de rajouter +3 à",
+            "votre marge de réussite."
+        ],
+        "nombre":5,
+        "mj":false
+    },
+    {
+        "titre":["Super"],
+        "desc":[
+            "Cette carte peut être",
+            "jouée comme une",
+            "Possibilités supplémentaire",
+            "ou échangée à la fin",
+            "de l’aventure contre",
+            "trois Possibilités."
+        ],
+        "nombre":13,
+        "mj":false
+    },
+    {
+        "titre": ["Commandement"],
+        "desc":[
+            "Vous pouvez placer",
+            "deux cartes dans",
+            "le jeu découvert",
+            "d’autres personnages",
+            "depuis votre main",
+            "et/ou le talon",
+            "Vous complétez",
+            "immédiatement",
+            "votre main."
+        ],
+        "nombre":5,
+        "mj":false
+    },
+    {
+        "titre": ["Soutien"],
+        "desc":[
+            "Ajoutez +3 au bonus de",
+            "l’action d’un autre",
+            "personnage"
+        ],
+        "nombre":10,
+        "mj":false
+    },
+    {
+        "titre":["Evasion"],
+        "desc":[
+            "Vous et votre groupe",
+            "pouvez échapper à cette",
+            "rencontre.",
+            "Cette carte doit",
+            "être placée en premier",
+            "dans le jeu découvert."
+        ],
+        "nombre":1,
+        "mj":false
+    },
+    {
+        "titre": ["Vigilance"],
+        "desc":[
+            "Vous remarquez un objet,",
+            "un personnage ou un indice",
+            "que vous n’aviez pas vu.",
+            "Placez cette carte,",
+            "face visible,",
+            "devant le maître du jeu."
+        ],
+        "nombre":4,
+        "mj":true
+    },
+    {
+        "titre":["Relations"],
+        "desc":[
+            "Vous connaissez quelqu’un",
+            "dans la région",
+            "qui peut vous aider"
+        ],
+        "nombre":4,
+        "mj":true
+    },
+    {
+        "titre":["Campagne"],
+        "desc":[
+            "Si le joueur et le maître",
+            "de jeu sont d’accord,",
+            "cette carte rend",
+            "une intrigue secondaire",
+            "permanente."
+        ],
+        "nombre":1,
+        "mj":true
+    },
+    {
+        "titre":["Idylle"],
+        "desc":[
+            "Intrigue secondaire.",
+            "Elle peut être échangée",
+            "contre une Possibilité,",
+            "ou permet de gagner",
+            "une possibilité par Acte",
+            "si elle entre en action."
+        ],
+        "nombre":2,
+        "mj":true
+    },
+    {
+        "titre":["Martyre"],
+        "desc":[
+            "Intrigue secondaire.",
+            "Vous pouvez vaincre n’importe",
+            "quel adversaire ",
+            "en sacrifiant votre vie"
+        ],
+        "nombre":1,
+        "mj":true
+    },
+    {
+        "titre": ["Erreur", "d’identité"],
+        "desc":[
+            "Intrigue secondaire.",
+            "Elle peut être échangée",
+            "contre une Possibilité,",
+            "ou permet de gagner",
+            "une possibilité par Acte",
+            "si elle entre en action."
+        ],
+        "nombre":1,
+        "mj":true
+    },
+    {
+        "titre": ["Identité", "Réelle"],
+        "desc":[
+            "Intrigue secondaire.",
+            "Elle peut être échangée",
+            "contre une Possibilité,",
+            "ou permet de gagner",
+            "une possibilité par Acte",
+            "si elle entre en action."
+        ],
+        "nombre":1,
+        "mj":true
+    },
+    {
+        "titre": ["Ennemi", "Personnel"],
+        "desc":[
+            "Intrigue secondaire.",
+            "Elle peut être échangée",
+            "contre une Possibilité,",
+            "ou permet de gagner",
+            "une possibilité par Acte",
+            "si elle entre en action."
+        ],
+        "nombre":1,
+        "mj":true
+    },
+    {
+        "titre": ["Soupçons"],
+        "desc":[
+            "Intrigue secondaire.",
+            "Elle peut être échangée",
+            "contre une Possibilité,",
+            "ou permet de gagner",
+            "une possibilité par Acte",
+            "si elle entre en action."
+        ],
+        "nombre":1,
+        "mj":true
+    }
+]
+
+
+

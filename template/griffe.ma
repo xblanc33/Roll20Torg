@@ -1,0 +1,24 @@
+!power {{
+  --name|edeinos griffe @{target|Name}
+  --jet | [[ [$value] 1d20!]]
+  --?? $value == 1 ?? | Echec
+  --?? $value == 2 ?? | dégats [[@{selected|Weapon1Mod}-8]]
+  --?? $value == 3  ?? | dégats [[@{selected|Weapon1Mod}-6]]
+  --?? $value == 4 ?? | dégats [[@{selected|Weapon1Mod} -6]]
+  --?? $value == 5 ?? | dégats [[@{selected|Weapon1Mod} -4]]
+  --?? $value == 6 ?? | dégats [[@{selected|Weapon1Mod} -4]]
+  --?? $value == 7 ?? | dégats [[@{selected|Weapon1Mod} -2]]
+  --?? $value == 8 ?? | dégats [[@{selected|Weapon1Mod} -2]]
+  --?? $value == 9 ?? | dégats [[@{selected|Weapon1Mod} -1]]
+  --?? $value == 10 ?? | dégats [[@{selected|Weapon1Mod} -1]]
+  --?? $value == 11 ?? | dégats [[@{selected|Weapon1Mod}]]
+  --?? $value == 12 ?? | dégats [[@{selected|Weapon1Mod}]]
+  --?? $value == 13 ?? | dégats [[@{selected|Weapon1Mod} +1]]
+  --?? $value == 14 ?? | dégats [[@{selected|Weapon1Mod} +1]]
+  --?? $value == 15 ?? | dégats [[@{selected|Weapon1Mod} +2]]
+  --?? $value == 16 ?? | dégats [[@{selected|Weapon1Mod} +3]]
+  --?? $value == 17 ?? | dégats [[@{selected|Weapon1Mod} +4]]
+  --?? $value == 18 ?? | dégats [[@{selected|Weapon1Mod} +5]]
+  --?? $value == 19 ?? | dégats [[@{selected|Weapon1Mod} +6]]
+  --?? $value == 20 ?? | dégats [[@{selected|Weapon1Mod} +7]]
+}}
