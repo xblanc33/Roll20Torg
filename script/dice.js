@@ -3,16 +3,32 @@ on("chat:message", function(msg) {
         log(msg.content);
         if(msg.content.indexOf("!tDice") !== -1) {
             let dice = rollTorgDice().toString();
-            sendResultToChat(msg.who, dice);
+            let res = {
+                title:'Jet de dès',
+                infoList:['resultat: '+dice]
+            }
+            sendResultToChat(msg.who, res);
         }
         if(msg.content.indexOf("!tScore") !== -1) {
             let dice = rollTorgDice();
             let score = diceToScore(dice).toString();
-            sendResultToChat(msg.who, score);
+            let res = {
+                title:'Jet de Score',
+                infoList:['resultat: '+score]
+            }
+            sendResultToChat(msg.who, res);
         }
         if (msg.content.indexOf("tAttackNPC") !== -1) {
             let paramList = msg.content.split(',');
+            paramList.shift();
+            attackNPC(...paramList);
 
+        }
+        if (msg.content.indexOf("tAttackPlayer") !== -1) {
+            let paramList = msg.content.split(',');
+            paramList.shift();
+            let res = attackPlayer(...paramList);
+            sendResultToChat(msg.who, res)
         }
     }
 });
@@ -117,13 +133,24 @@ function attackNPC(attackerName, attackerSkill, difficulty, targetName, weaponMo
 
 function attackPlayer(attackerSkill, difficulty, playerName, weaponModifier, weaponMax, playerToughness) {
     let result = {};
+    attackerSkill = attackerSkill.split('+').reduce( (prev,cur) => prev+parseInt(cur),0);
+    difficulty = parseInt(difficulty);
+    weaponModifier = parseInt(weaponModifier);
+    weaponMax = parseInt(weaponMax);
+    playerToughness = parseInt(playerToughness);
+    log(`attackPlayer(${attackerSkill}, ${difficulty}, ${playerName}, ${weaponModifier}, ${weaponMax}, ${playerToughness})`);
     let score = rollTorgScore();
     if (isSuccess(score, attackerSkill, difficulty)) {
-        res.success = true;
-
-    } else {
+        log('success attack');
         result.success = false;
-        
+        result.title = `${playerName} a été touché`;
+        result.infoList = ["Scoce obtenu: "+score];
+        result.infoList.push(...computeDommagePossibilite(weaponModifier, weaponMax, score, playerToughness));
+    } else {
+        log('failed attack');
+        result.success = true;
+        result.title = `${playerName} a esquivé l'attaque`;
+        result.infoList = ["Scoce obtenu: "+score];
     }
     return result;
 }
@@ -132,7 +159,61 @@ function isSuccess(score, skill, difficulty) {
     return ((score + skill) >= difficulty);
 }
 
+function computeDommagePossibilite(weaponModifier, weaponMax, score, playerToughness) {
+    let marge = Math.max(weaponModifier + score , weaponMax) - playerToughness;
+    if (marge <= 0) {
+        return ["Aucun dommage"];
+    }
+    if (marge <= 1) {
+        return ["Dommage : 1"];
+    }
+    if (marge <= 2) {
+        return ["Dommage : O 1"];
+    }
+    if (marge <= 3) {
+        return ["Dommage : K 1"];
+    }
+    if (marge <= 4) {
+        return ["Dommage : 2"];
+    }
+    if (marge <= 5) {
+        return ["Dommage : O 2"];
+    }
+    if (marge <= 6) {
+        return ["Dommage : Chute O 2"];
+    }
+    if (marge <= 8) {
+        return ["Dommage : Chute K 2"];
+    }
+    if (marge <= 9) {
+        return ["Dommage : Bls : K 3"];
+    }
+    if (marge <= 10) {
+        return ["Dommage : Bls : K 4"];
+    }
+    if (marge <= 11) {
+        return ["Dommage : Bls O 4"];
+    }
+    if (marge <= 12) {
+        return ["Dommage : Bls K 5"];
+    }
+    if (marge <= 13) {
+        return ["Dommage : 2 Bls O 4"];
+    }
+    if (marge <= 14) {
+        return ["Dommage : 2 Bls KO 5"];
+    }
+    if (marge <= 15) {
+        return ["Dommage : 3 Bls KO 5"];
+    }
+    let nbBls = 3 + Math.floor(((marge - 16)/2));
+    return["Dommage : "+nbBls+" Bls KO 5"];
+}
+
 function sendResultToChat(who, result) {
     //TODO Fred
-    sendChat(who, result);
+    sendChat(who, result.title);
+    if (result.infoList != undefined) {
+        result.infoList.forEach(info => sendChat(who, info));
+    }
 }
