@@ -266,38 +266,42 @@ function margeToDamageForNormCharacter(marge) {
 }
 
 function sendResultToChat(who, result) {
+    const TORG_COLOR="#e7f106";
+    const COLOR_EVEN="#b6ab91";
+    const COLOR_ODD="#cec7b6";
+    const DIV_HEADER = "<div style='font-family: Impact; font-size: 1.2em; line-height: 1.2em; font-weight: normal; font-style: normal; font-variant: normal; letter-spacing: 2px; text-align: center; vertical-align: middle; margin: 0px; padding: 2px 0px 0px 0px; border: 1px solid #000000; border-radius: 5px 5px 0px 0px; color: #000000; text-shadow: -1px -1px 0 #ffffff , 1px -1px 0 #ffffff , -1px 1px 0 #ffffff , 1px 1px 0 #ffffff; background-color: "+ TORG_COLOR +"; background-image: linear-gradient( rgba( 255 , 255 , 255 , .3 ) , rgba( 255 , 255 , 255 , 0 ) )';>";
+    const SPAN_SUBTITLE = "<span style='font-family: tahoma; font-size: 13px; font-weight: normal; font-style: normal; font-variant: normal; letter-spacing: 1px';>";
+    const DIV_LINE = "<div style='color: #000000; background-color: |color|; line-height: 1.1em; vertical-align: middle; font-family: helvetica; font-size: 14px; font-weight: normal; font-style: normal; text-align: left; padding: 4px 5px 2px 5px; border-left: 1px solid #000000; border-right: 1px solid #000000;'>";
+    const DIV_LAST_LINE = "<div style='color: #000000; background-color: |color|; line-height: 1.1em; vertical-align: middle; font-family: helvetica; font-size: 14px; font-weight: normal; font-style: normal; text-align: left; padding: 4px 5px 2px 5px; border-left: 1px solid #000000; border-right: 1px solid #000000; border-bottom: 1px solid #000000; border-radius: 0px 0px 5px 5px;'>";
 
-    const torgColor="#e7f106";
-    
-    const colorLine1="#b6ab91";
-    const colorLine2="#cec7b6";
-    
-    const divHeaderStyle = "<div style='font-family: Impact; font-size: 1.2em; line-height: 1.2em; font-weight: normal; font-style: normal; font-variant: normal; letter-spacing: 2px; text-align: center; vertical-align: middle; margin: 0px; padding: 2px 0px 0px 0px; border: 1px solid #000000; border-radius: 5px 5px 0px 0px; color: #000000; text-shadow: -1px -1px 0 #ffffff , 1px -1px 0 #ffffff , -1px 1px 0 #ffffff , 1px 1px 0 #ffffff; background-color: "+ torgColor +"; background-image: linear-gradient( rgba( 255 , 255 , 255 , .3 ) , rgba( 255 , 255 , 255 , 0 ) )';>";
-    const spanSubTitleStyle = "<span style='font-family: tahoma; font-size: 13px; font-weight: normal; font-style: normal; font-variant: normal; letter-spacing: 1px';>";
-    const divLineStyle = "<div style='color: #000000; background-color: |color|; line-height: 1.1em; vertical-align: middle; font-family: helvetica; font-size: 14px; font-weight: normal; font-style: normal; text-align: left; padding: 4px 5px 2px 5px; border-left: 1px solid #000000; border-right: 1px solid #000000;'>";
-    const divLastLineStyle = "<div style='color: #000000; background-color: |color|; line-height: 1.1em; vertical-align: middle; font-family: helvetica; font-size: 14px; font-weight: normal; font-style: normal; text-align: left; padding: 4px 5px 2px 5px; border-left: 1px solid #000000; border-right: 1px solid #000000; border-bottom: 1px solid #000000; border-radius: 0px 0px 5px 5px;'>";
-    let Content = divHeaderStyle + result.title + "<br/>";
+    let content = DIV_HEADER + result.title + "<br/>";
     
     if (result.subtitle !== undefined) {
-        Content += spanSubTitleStyle + result.subtitle + "</span>";
+        content += SPAN_SUBTITLE + result.subtitle + "</span>";
     }
         
-    Content += "</div>";
-    
-    for  (var i = 0; i < result.infoList.length; i++) { 
-        let lineStyle;
-    
-        if (i==result.infoList.length-1) {
-            lineStyle = (i % 2 ==1 || result.infoList.length==1 ) ? divLastLineStyle.replace("|color|",colorLine1) : divLineStyle.replace("|color|",colorLine2);
+    content += "</div>";
+
+    result.infoList.forEach( (info, i ) => {
+        let color = COLOR_ODD;
+        if ((i % 2) || result.infoList.length == 1) {
+            color = COLOR_EVEN;
+        }
+        let line;
+        if ((i+1) === result.infoList.length) {
+            line = DIV_LAST_LINE.replace("|color|",color)
         } else {
-            lineStyle = (i % 2 ==1) ? divLineStyle.replace("|color|",colorLine1) : divLineStyle.replace("|color|",colorLine2);
+            line = DIV_LINE.replace("|color|",color)
         }
         if (result.infoList[i][0].startsWith("!")) {
-            Content += lineStyle + result.infoList[i][1] + "</div>"
+            content += line + result.infoList[i][1] + "</div>"
         } else {
-            Content += lineStyle + "<strong>" + result.infoList[i][0] + "</strong> " + result.infoList[i][1] +  "</div>"
+            content += line + "<strong>" 
+                        + result.infoList[i][0] 
+                        + "</strong> " 
+                        + result.infoList[i][1] 
+                        + "</div>"
         }
-    }
-
-    sendChat(who,Content); 
+    })
+    sendChat(who,content); 
 }
