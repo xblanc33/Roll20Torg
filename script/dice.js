@@ -162,6 +162,9 @@ function attackNPC(parameters) {
     let weaponMax = parameters.weaponMax;
     let tokenToughness = parameters.targetTOU;
     let tokenId = parameters.targetToken;
+    let targetArmorBase  = parameters.targetArmorBase || 0;
+    let targetArmorMax = parameters.targetArmorMax || 100;
+    let distance = parameters.dist || 0;
 
     log(`attackNPC(${attackerSkill}, ${difficulty}, ${weaponBase}, ${weaponMax}, ${tokenToughness}, ${tokenId})`);
 
@@ -175,14 +178,14 @@ function attackNPC(parameters) {
     result.title = `${attackerName} attaque ${npcName}`;
     result.infoList = [["Dès obtenu", dice]];
     let score = diceToScore(dice);
-    if (isSuccess(score, attackerSkill, difficulty)) {
+    if (isSuccess(score, attackerSkill, difficulty + distance)) {
         result.subtitle = `${npcName} a été touché`;
         result.infoList.push(["Score obtenu",score]);
         let damage;
         if (targetHasPossibility) {
-            damage = computeDamagePossibilite(weaponBase, weaponMax, score, tokenToughness);
+            damage = computeDamagePossibilite(weaponBase, weaponMax, score, tokenToughness, targetArmorBase, targetArmorMax);
         } else {
-            damage = computeDamageNorm(weaponBase, weaponMax, score, tokenToughness);
+            damage = computeDamageNorm(weaponBase, weaponMax, score, tokenToughness, targetArmorBase, targetArmorMax);
         }
         applyDamageToToken(damage, tokenId);
         result.infoList.push(damageToInfoList(damage));
@@ -199,19 +202,22 @@ function attackPlayer(parameters) {
     let attackerSkill = parameters.skill;
     let difficulty = parameters.diff;
     let weaponBase = parameters.weaponBase;
-    let weaponMax = parameters.weaponMax;
+    let weaponMax = parameters.weaponMax || 100;
     let playerToughness = parameters.targetTOU;
-    let playerName = parameters.targetName;
+    let playerName = parameters.targetName || "unknown";
+    let targetArmorBase  = parameters.targetArmorBase || 0;
+    let targetArmorMax = parameters.targetArmorMax || 100;
+    let distance = parameters.dist || 0;
+
     log(`attackPlayer(${attackerSkill}, ${difficulty}, ${playerName}, ${weaponBase}, ${weaponMax}, ${playerToughness})`);
     result.title = `${attackerName} attaque ${playerName}`;
     let dice = rollTorgDice();
     result.infoList = [["Dès obtenu", dice]];
     let score = diceToScore(dice);
-    if (isSuccess(score, attackerSkill, difficulty)) {
+    if (isSuccess(score, attackerSkill, difficulty + distance)) {
         result.subtitle = `${playerName} a été touché`;
         result.infoList.push(["Score obtenu",score]);
-        let damage = computeDamagePossibilite(weaponBase, weaponMax, score, playerToughness);
-        log(JSON.stringify(damage));
+        let damage = computeDamagePossibilite(weaponBase, weaponMax, score, playerToughness, targetArmorBase, targetArmorMax);
         result.infoList.push(damageToInfoList(damage));
     } else {
         result.subtitle = `${playerName} a esquivé l'attaque`;
@@ -224,13 +230,13 @@ function isSuccess(score, skill, difficulty) {
     return ((score + skill) >= difficulty);
 }
 
-function computeDamagePossibilite(weaponModifier, weaponMax, score, playerToughness) {
-    let marge = Math.min(weaponModifier + score , weaponMax) - playerToughness;
+function computeDamagePossibilite(weaponModifier, weaponMax, score, toughness, armorBase, armorMax) {
+    let marge = Math.min(weaponModifier + score , weaponMax) - Math.min(toughness + armorBase, armorMax);
     return margeToDamageForCharacterWithPossibility(marge);
 }
 
-function computeDamageNorm(weaponModifier, weaponMax, score, playerToughness) {
-    let marge = Math.min(weaponModifier + score , weaponMax) - playerToughness;
+function computeDamageNorm(weaponModifier, weaponMax, score, toughness, armorBase, armorMax) {
+    let marge = Math.min(weaponModifier + score , weaponMax) - Math.min(toughness + armorBase, armorMax);
     return margeToDamageForNormCharacter(marge);
 }
 
