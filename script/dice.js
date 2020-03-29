@@ -48,21 +48,21 @@ function getParameters(content) {
         let subContentList = contentElement.split(' ');
         let parameterName = subContentList.shift().trim();
         contentElement = subContentList.join(' ');
-        let numberValue = parseInt(contentElement);
-        if (isNaN(numberValue)) {
-            if (contentElement.indexOf('+') !== -1) {
-                numberValue = contentElement.split('+').reduce( (prev, cur) => prev + parseInt(cur), 0);
-                if (isNaN(numberValue)) {
-                    parameterSet[parameterName] = contentElement.trim();
-                } else {
-                    parameterSet[parameterName] = numberValue;
-                }
-
-            } else {
+        if (contentElement.indexOf('+') !== -1) {
+            let numberValue = contentElement.split('+').reduce( (prev, cur) => prev + parseInt(cur), 0);
+            if (isNaN(numberValue)) {
                 parameterSet[parameterName] = contentElement.trim();
+            } else {
+                parameterSet[parameterName] = numberValue;
             }
+
         } else {
-            parameterSet[parameterName] = numberValue;
+            let numberValue = parseInt(contentElement);
+            if (isNaN(numberValue)) {
+                parameterSet[parameterName] = contentElement.trim();
+            } else {
+                parameterSet[parameterName] = numberValue;
+            }
         }
     })
     return parameterSet;
