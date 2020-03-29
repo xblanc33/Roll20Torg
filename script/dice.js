@@ -610,7 +610,10 @@ function sendResultToChat(who, result) {
                         + "</div>"
         }
     })
-    sendChat(who,content); 
+    setTimeout(() => {
+        sendChat(who,content); 
+    },250)
+    
 }
 
 function playSoundFX(soundName) {
