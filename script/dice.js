@@ -18,24 +18,21 @@ on("chat:message", function(msg) {
             }
             sendResultToChat(msg.who, res);
         }
-        if (msg.content.indexOf("!tAttackNPC") !== -1) {
-            log(msg.content);
+        if (msg.content.indexOf("!tAttack") !== -1) {
             let parameters = getParameters(msg.content);
             if (parameters.sound) {
                 log('sound:'+parameters.sound);
                 playSoundFX(parameters.sound);
             }
-            let res = attackNPC(parameters);
+            let res = attack(parameters);
             sendResultToChat(msg.who, res);
         }
-        if (msg.content.indexOf("!tAttackPlayer") !== -1) {
-            let parameters = getParameters(msg.content);
-            if (parameters.sound) {
-                log('sound:'+parameters.sound);
-                playSoundFX(parameters.sound);
+        if (msg.content.indexOf("!tResetToken") !== -1) {
+            log(msg.content);
+            let tokenId = msg.content.split("--tokenId")[1].trim();
+            if (tokenId) {
+                resetToken(tokenId);
             }
-            let res = attackPlayer(parameters);
-            sendResultToChat(msg.who, res);
         }
     }
 });
@@ -69,10 +66,11 @@ function getParameters(content) {
 }
 
 
-function rollTorgDice() {
+function rollTorgDice(blocked) {
+    blocked = blocked || false;
     const DICE = 20;
     let dice = Math.floor(Math.random() * Math.floor(DICE))+1;
-    if (dice === 10 || dice === 20) {
+    if (!blocked && (dice === 10 || dice === 20)) {
         dice += rollTorgDice();
     }
     return dice;
@@ -153,90 +151,108 @@ function diceToScore(dice) {
     return 16;
 }
 
-function attackNPC(parameters) {
+function attack(parameters) {
     let result = {};
-    let attackerName = parameters.name;
-    let attackerSkill = parameters.skill;
-    let difficulty = parameters.diff;
-    let weaponBase = parameters.weaponBase;
-    let weaponMax = parameters.weaponMax;
-    let tokenToughness = parameters.targetTOU;
-    let tokenId = parameters.targetToken;
-    let targetArmorBase  = parameters.targetArmorBase || 0;
-    let targetArmorMax = parameters.targetArmorMax || 100;
+    let attackerTokenId = parameters.attackerTokenId;
+    let defenderTokenId = parameters.defenderTokenId;
+    let skillNumber = parameters.skillNumber;
+    let diffModifier = parameters.diffModifier;
+    let weaponNumber = parameters.weaponNumber;
+    let previousDice = parameters.previousDice || 0;
     let distance = parameters.dist || 0;
+    let blocked = parameters.blocked || false;
+    let extraDice = parameters.extraDice || false;
 
-    log(`attackNPC(${attackerSkill}, ${difficulty}, ${weaponBase}, ${weaponMax}, ${tokenToughness}, ${tokenId})`);
+    let attackerToken = getObj("graphic",attackerTokenId);
+    let defenderToken = getObj("graphic",defenderTokenId);
+    let attacker = attackerToken.get("represents");
+    let defender = defenderToken.get("represents");
 
-    //log(tokenId);
-    let npcToken = getObj("graphic",tokenId);
-    let npcId = npcToken.get("represents");
-    let targetHasPossibility = parseInt(getAttrByName(npcId, "Possib")) > 0;
-    let npcName = getAttrByName(npcId,"Name");
+    let attackerName = getAttrByName(attacker,"Name");
+    let defenderName = getAttrByName(defender,"Name");
+    let defenderHasPossibility = parseInt(getAttrByName(defender, "Possib")) > 0;
+    
+    let attackerSkill = computeSkill(attacker, skillNumber);
+    let difficulty = computeSkill(defender, 1) + diffModifier;
 
-    let dice = rollTorgDice();
-    result.title = `${attackerName} attaque ${npcName}`;
+    let weaponBase = parseInt(getAttrByName(attacker,`Weapon${weaponNumber}Mod`));
+    let weaponMax = parseInt(getAttrByName(attacker,`Weapon${weaponNumber}Value`));
+
+    let toughness = parseInt(getAttrByName(defender,"TOU"));
+    let armorBase = parseInt(getAttrByName(defender,"Armor1Mod"));
+    let armorMax = parseInt(getAttrByName(defender,"Armor1Value"));
+    
+
+    log(`${attackerName} attaque avec skill:${attackerSkill}, weapon:${weaponBase}, weaponMax:${weaponMax})`);
+    log(`${defenderName} défend avec difficulty:${difficulty}, armorBase:${armorBase}, armorMax:${armorMax}, END:${toughness}`);
+    log(`option (blocked:${blocked}), (exra:${extraDice})`);
+    let dice = rollTorgDice(blocked) + previousDice;
+    if (extraDice) {
+        log('extraDice');
+        dice += rollTorgDice(blocked);
+    }
+    result.title = `${attackerName} attaque ${defenderName}`;
     result.infoList = [["Dès obtenu", dice]];
     let score = diceToScore(dice);
     if (isSuccess(score, attackerSkill, difficulty + distance)) {
-        result.subtitle = `${npcName} a été touché`;
+        result.subtitle = `${defenderName} a été touché`;
         result.infoList.push(["Score obtenu",score]);
         let damage;
-        if (targetHasPossibility) {
-            damage = computeDamagePossibilite(weaponBase, weaponMax, score, tokenToughness, targetArmorBase, targetArmorMax);
+        log(`has defender possibility : ${defenderHasPossibility}`);
+        if (defenderHasPossibility) {
+            damage = computeDamagePossibilite(weaponBase, weaponMax, score, toughness, armorBase, armorMax);
         } else {
-            damage = computeDamageNorm(weaponBase, weaponMax, score, tokenToughness, targetArmorBase, targetArmorMax);
+            damage = computeDamageNorm(weaponBase, weaponMax, score, toughness, armorBase, armorMax);
         }
-        applyDamageToToken(damage, tokenId);
+        applyDamageToToken(damage, defenderTokenId);
+        updateTokenGraphicalAspec(defenderTokenId);
         result.infoList.push(damageToInfoList(damage));
     } else {
-        result.subtitle = `${npcName} a esquivé l'attaque`;
+        result.subtitle = `${defenderName} a esquivé l'attaque`;
         result.infoList.push(["Score obtenu",score]);
     }
     return result;
 }
 
-function attackPlayer(parameters) {
-    let result = {};
-    let attackerName = parameters.name;
-    let attackerSkill = parameters.skill;
-    let difficulty = parameters.diff;
-    let weaponBase = parameters.weaponBase;
-    let weaponMax = parameters.weaponMax || 100;
-    let playerToughness = parameters.targetTOU;
-    let playerName = parameters.targetName || "unknown";
-    let targetArmorBase  = parameters.targetArmorBase || 0;
-    let targetArmorMax = parameters.targetArmorMax || 100;
-    let distance = parameters.dist || 0;
-
-    log(`attackPlayer(${attackerSkill}, ${difficulty}, ${playerName}, ${weaponBase}, ${weaponMax}, ${playerToughness})`);
-    result.title = `${attackerName} attaque ${playerName}`;
-    let dice = rollTorgDice();
-    result.infoList = [["Dès obtenu", dice]];
-    let score = diceToScore(dice);
-    if (isSuccess(score, attackerSkill, difficulty + distance)) {
-        result.subtitle = `${playerName} a été touché`;
-        result.infoList.push(["Score obtenu",score]);
-        let damage = computeDamagePossibilite(weaponBase, weaponMax, score, playerToughness, targetArmorBase, targetArmorMax);
-        result.infoList.push(damageToInfoList(damage));
-    } else {
-        result.subtitle = `${playerName} a esquivé l'attaque`;
-        result.infoList.push(["Score obtenu",score]);
-    }
-    return result;
+function computeSkill(character, skillNumber) {
+    let characterSkillComp = getAttrByName(character,"Skill"+skillNumber+"Mod").replace(/[@{}]+/g, '');
+    let characterSkillCompValue = parseInt(getAttrByName(character, characterSkillComp));
+    let characterSkillAdds = parseInt(getAttrByName(character,"Skill"+skillNumber+"Adds"));
+    return characterSkillCompValue + characterSkillAdds;
 }
 
 function isSuccess(score, skill, difficulty) {
     return ((score + skill) >= difficulty);
 }
 
-function computeDamagePossibilite(weaponModifier, weaponMax, score, toughness, armorBase, armorMax) {
-    let marge = Math.min(weaponModifier + score , weaponMax) - Math.min(toughness + armorBase, armorMax);
+function computeDamagePossibilite(weaponBase, weaponMax, score, toughness, armorBase, armorMax) {
+    let attack = weaponBase + score;
+    log(`attack:${attack}`);
+    if (weaponMax) {
+        attack = Math.min(attack, weaponMax);
+        log(`attack:${attack} with weaponMax (${weaponMax})`);
+    }
+    let defense = toughness + armorBase;
+    log(`defense:${defense}`);
+    if (armorMax) {
+        defense = Math.min(defense, armorMax);
+        log(`defense:${defense} with armorMax (${armorMax})`);
+    }
+    let marge = attack - defense;
+    log(`marge:${marge}`);
     return margeToDamageForCharacterWithPossibility(marge);
 }
 
 function computeDamageNorm(weaponModifier, weaponMax, score, toughness, armorBase, armorMax) {
-    let marge = Math.min(weaponModifier + score , weaponMax) - Math.min(toughness + armorBase, armorMax);
+    let attack = weaponModifier + score;
+    if (weaponMax) {
+        attack = Math.min(attack, weaponMax);
+    }
+    let defense = toughness + armorBase;
+    if (armorMax) {
+        defense = Math.min(defnse, armorMax);
+    }
+    let marge = attack - defense;
     return margeToDamageForNormCharacter(marge);
 }
 
@@ -244,9 +260,13 @@ function margeToDamageForCharacterWithPossibility(marge) {
     let damage = {
         K: false,
         O:false,
+        KO:false,
         bls:0,
         choc:0,
         chute:false
+    }
+    if (marge == 0) {
+        damage.choc = 1;
     }
     if (marge == 1) {
         damage.choc = 1;
@@ -266,12 +286,12 @@ function margeToDamageForCharacterWithPossibility(marge) {
         damage.choc = 2;
         damage.O = true;
     }
-    if ((marge == 6) || (marge == 7)) {
+    if (marge == 6)  {
         damage.choc = 2;
         damage.O = true;
         damage.chute = true;
     }
-    if (marge == 8) {
+    if ((marge == 7) || (marge == 8)) {
         damage.choc = 2;
         damage.K = true;
         damage.chute = true;
@@ -328,6 +348,7 @@ function margeToDamageForNormCharacter(marge) {
     let damage = {
         K: false,
         O:false,
+        KO:false,
         bls:0,
         choc:0,
         chute:false
@@ -336,75 +357,84 @@ function margeToDamageForNormCharacter(marge) {
         damage.choc = 1;
     }
     if (marge == 1) {
+        damage.O = true;
         damage.choc = 1;
     }
     if (marge == 2) {
         damage.choc = 1;
-        damage.O = true;
-    }
-    if (marge == 3) {
-        damage.choc = 1;
         damage.K = true;
     }
-    if (marge == 4) {
+    if (marge == 3) {
         damage.choc = 2;
+        damage.O = true;
+    }
+    if (marge == 4) {
+        damage.choc = 3;
+        damage.O = true;
     }
     if (marge == 5) {
-        damage.choc = 2;
-        damage.O = true;
+        damage.choc = 3;
+        damage.K = true;
     }
-    if ((marge == 6) || (marge == 7)) {
-        damage.choc = 2;
-        damage.O = true;
+    if (marge == 6) {
+        damage.choc = 4;
+        damage.KO = true;
+        damage.chute = true;
+    }
+    if (marge == 7) {
+        damage.choc = 5;
+        damage.KO = true;
         damage.chute = true;
     }
     if (marge == 8) {
-        damage.choc = 2;
-        damage.K = true;
-        damage.chute = true;
+        damage.choc = 7;
+        damage.K0 = true;
+        damage.bls = 1;
     }
     if (marge == 9) {
-        damage.choc = 3;
-        damage.K = true;
+        damage.choc = 9;
+        damage.KO = true;
         damage.bls = 1;
     }
     if (marge == 10) {
-        damage.choc = 4;
-        damage.K = true;
+        damage.choc = 10;
+        damage.KO = true;
         damage.bls = 1;
     }
     if (marge == 11) {
-        damage.choc = 4;
-        damage.O = true;
-        damage.bls = 1;
+        damage.choc = 11;
+        damage.KO = true;
+        damage.bls = 2;
     }
     if (marge == 12) {
-        damage.choc = 5;
+        damage.choc = 12;
         damage.K = true;
-        damage.bls = 1;
+        damage.O = true;
+        damage.bls = 2;
     }
     if (marge == 13) {
-        damage.choc = 4;
-        damage.O = true;
-        damage.bls = 2;
-    }
-    if (marge == 14) {
-        damage.choc = 5;
-        damage.K = true;
-        damage.O = true;
-        damage.bls = 2;
-    }
-    if (marge == 15) {
-        damage.choc = 5;
+        damage.choc = 13;
         damage.K = true;
         damage.O = true;
         damage.bls = 3;
     }
-    if (marge > 15) {
-        let nbBls = 3 + Math.floor(((marge - 16)/2));
-        damage.choc = 5;
+    if (marge == 14) {
+        damage.choc = 14;
         damage.K = true;
         damage.O = true;
+        damage.bls = 3;
+    }
+    if (marge == 15) {
+        damage.choc = 15;
+        damage.K = true;
+        damage.O = true;
+        damage.bls = 4;
+    }
+    if (marge > 15) {
+        damage.choc = 15;
+        damage.K = true;
+        damage.O = true;
+        let nbBls = 3 + Math.floor(((marge - 16)/2));
         damage.bls = nbBls;
     }
     return damage;
@@ -423,10 +453,31 @@ function applyDamageToToken(damage, tokenId) {
     token.set(BLS_BAR, bls + damage.bls);
     token.set(SHOCK_BAR, shock + damage.choc);
     if (damage.K) {
-        ko += ((ko%2) + 1) % 2;
+        if (ko == 0) {
+            ko = 1;
+        }
+        if (ko == 2) {
+            ko = 3;
+        }
     }
     if (damage.O) {
-        ko += ((ko%4) + 2) % 4;
+        if (ko == 0) {
+            ko = 2;
+        }
+        if (ko == 1) {
+            ko = 3;
+        }
+    }
+    if (damage.KO) {
+        if (ko == 0) {
+            ko = 1;
+        } 
+        if (ko == 1) {
+            ko = 3;
+        }
+        if (ko == 2) {
+            ko = 3;
+        }
     }
     token.set(KO_BAR, ko);
 }
@@ -451,6 +502,73 @@ function damageToInfoList(damage) {
         damageString += " "+damage.choc;
         return ["Dommage",damageString];
     }
+}
+
+function updateTokenGraphicalAspec(tokenId) {
+    const BLS_BAR = "bar3_value";
+    const SHOCK_BAR = "bar1_value";
+    const SHOCK_MAX = "bar1_max";
+    const KO_BAR = "bar2_value";
+
+    let token = getObj("graphic",tokenId);
+    let bls = parseInt(token.get(BLS_BAR));
+    let shock = parseInt(token.get(SHOCK_BAR));
+    let shockMax = parseInt(token.get(SHOCK_MAX));
+    let ko = parseInt(token.get(KO_BAR));
+
+    log(`update graphical (bls:${bls}) (shock:${shock})`)
+
+    if (bls >= 4) {
+        token.set("status_dead", true);
+        token.set("status_death-zone", true);
+    }
+    if (shock >= shockMax) {
+        token.set("status_dead", true);
+        token.set("status_sleepy", true);
+    }
+    if (ko >= 3) {
+        token.set("status_dead", true);
+        token.set("status_sleepy", true);
+    }
+    if (bls >= 1) {
+        token.set("status_red", true);
+    }
+    if (shock >= 1) {
+        token.set("status_green", true);
+    }
+    if (ko >= 1) {
+        token.set("status_blue", true);
+    }
+
+}
+
+
+function resetToken(tokenId) {
+    log(`resetToken: ${tokenId}`);
+    const BLS_BAR = "bar3_value";
+    const BLS_MAX = "bar3_max";
+    const SHOCK_BAR = "bar1_value";
+    const SHOCK_MAX = "bar1_max";
+    const KO_BAR = "bar2_value";
+    const KO_MAX = "bar2_max";
+
+    let token = getObj("graphic",tokenId);
+    let character = token.get("represents");
+    
+    let shockMax = parseInt(getAttrByName(character,"TOU"));
+
+    token.set(BLS_BAR,0);
+    token.set(BLS_MAX,4);
+    token.set(SHOCK_BAR,0);
+    token.set(SHOCK_MAX,shockMax);
+    token.set(KO_BAR,0);
+    token.set(KO_MAX,3);
+    token.set("status_dead", false);
+    token.set("status_death-zone", false);
+    token.set("status_sleepy", false);
+    token.set("status_red", false);
+    token.set("status_green", false);
+    token.set("status_blue", false);
 }
 
 
