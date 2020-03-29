@@ -19,19 +19,46 @@ on("chat:message", function(msg) {
             sendResultToChat(msg.who, res);
         }
         if (msg.content.indexOf("!tAttackNPC") !== -1) {
-            let paramList = msg.content.split(',');
-            paramList.shift();
-            let res = attackNPC(...paramList);
+            log(msg.content);
+            let parameters = getParameters(msg.content);
+            let res = attackNPC(parameters);
             sendResultToChat(msg.who, res);
         }
         if (msg.content.indexOf("!tAttackPlayer") !== -1) {
-            let paramList = msg.content.split(',');
-            paramList.shift();
-            let res = attackPlayer(...paramList);
+            let parameters = getParameters(msg.content);
+            let res = attackPlayer(parameters);
             sendResultToChat(msg.who, res);
         }
     }
 });
+
+function getParameters(content) {
+    let parameterSet = {}
+    let contentList = content.split('--');
+    contentList.shift();//remove script name
+    contentList.forEach(contentElement => {
+        let subContentList = contentElement.split(' ');
+        let parameterName = subContentList.shift().trim();
+        contentElement = subContentList.join(' ');
+        let numberValue = parseInt(contentElement);
+        if (isNaN(numberValue)) {
+            if (contentElement.indexOf('+') !== -1) {
+                numberValue = contentElement.split('+').reduce( (prev, cur) => prev + parseInt(cur), 0);
+                if (isNaN(numberValue)) {
+                    parameterSet[parameterName] = contentElement.trim();
+                } else {
+                    parameterSet[parameterName] = numberValue;
+                }
+
+            } else {
+                parameterSet[parameterName] = contentElement.trim();
+            }
+        } else {
+            parameterSet[parameterName] = numberValue;
+        }
+    })
+    return parameterSet;
+}
 
 
 function rollTorgDice() {
@@ -118,61 +145,64 @@ function diceToScore(dice) {
     return 16;
 }
 
-function attackNPC(attackerSkill, difficulty, tokenId, weaponModifier, weaponMax, tokenToughness) {
+function attackNPC(parameters) {
     let result = {};
-    attackerSkill = attackerSkill.split('+').reduce( (prev,cur) => prev+parseInt(cur),0);
-    difficulty = parseInt(difficulty);
-    weaponModifier = parseInt(weaponModifier);
-    weaponMax = parseInt(weaponMax);
-    tokenToughness = parseInt(tokenToughness);
-    tokenId = tokenId.trim();
+    let attackerSkill = parameters.skill;
+    let difficulty = parameters.diff;
+    let weaponBase = parameters.weaponBase;
+    let weaponMax = parameters.weaponMax;
+    let tokenToughness = parameters.targetTOU;
+    let tokenId = parameters.targetToken;
 
-    log(tokenId);
+    log(`attackNPC(${attackerSkill}, ${difficulty}, ${weaponBase}, ${weaponMax}, ${tokenToughness}, ${tokenId})`);
+
+    //log(tokenId);
     let npcToken = getObj("graphic",tokenId);
-    log(npcToken);
     let npcId = npcToken.get("represents");
     let targetHasPossibility = parseInt(getAttrByName(npcId, "Possib")) > 0;
     let npcName = getAttrByName(npcId,"Name");
-    log(targetHasPossibility);
 
-    let score = rollTorgScore();
+    let dice = rollTorgDice();
+    result.infoList = [["Dès obtenu", dice]];
+    let score = diceToScore(dice);
     if (isSuccess(score, attackerSkill, difficulty)) {
         result.title = `${npcName} a été touché`;
-        result.infoList = [["Score obtenu",score]];
+        result.infoList.push(["Score obtenu",score]);
         let damage;
         if (targetHasPossibility) {
-            damage = computeDamagePossibilite(weaponModifier, weaponMax, score, tokenToughness);
+            damage = computeDamagePossibilite(weaponBase, weaponMax, score, tokenToughness);
         } else {
-            damage = computeDamageNorm(weaponModifier, weaponMax, score, tokenToughness);
+            damage = computeDamageNorm(weaponBase, weaponMax, score, tokenToughness);
         }
+        applyDamageToToken(damage, tokenId);
         result.infoList.push(damageToInfoList(damage));
     } else {
         result.title = `${npcName} a esquivé l'attaque`;
-        result.infoList = [["Score obtenu",score]];
+        result.infoList.push(["Score obtenu",score]);
     }
     return result;
 }
 
-function attackPlayer(attackerSkill, difficulty, playerName, weaponModifier, weaponMax, playerToughness) {
+function attackPlayer(parameters) {
     let result = {};
-    attackerSkill = attackerSkill.split('+').reduce( (prev,cur) => prev+parseInt(cur),0);
-    difficulty = parseInt(difficulty);
-    weaponModifier = parseInt(weaponModifier);
-    weaponMax = parseInt(weaponMax);
-    playerToughness = parseInt(playerToughness);
-    log(`attackPlayer(${attackerSkill}, ${difficulty}, ${playerName}, ${weaponModifier}, ${weaponMax}, ${playerToughness})`);
-    let score = rollTorgScore();
+    let attackerSkill = parameters.skill;
+    let difficulty = parameters.diff;
+    let weaponBase = parameters.weaponBase;
+    let weaponMax = parameters.weaponMax;
+    let playerToughness = parameters.playerTOU;
+    log(`attackPlayer(${attackerSkill}, ${difficulty}, ${playerName}, ${weaponBase}, ${weaponMax}, ${playerToughness})`);
+    let dice = rollTorgDice();
+    result.infoList = [["Dès obtenu", dice]];
+    let score = diceToScore(dice);
     if (isSuccess(score, attackerSkill, difficulty)) {
-        log('success attack');
         result.title = `${playerName} a été touché`;
-        result.infoList = [["Score obtenu",score]];
-        let damage = computeDamagePossibilite(weaponModifier, weaponMax, score, playerToughness);
+        result.infoList.push(["Score obtenu",score]);
+        let damage = computeDamagePossibilite(weaponBase, weaponMax, score, playerToughness);
         log(JSON.stringify(damage));
         result.infoList.push(damageToInfoList(damage));
     } else {
-        log('failed attack');
         result.title = `${playerName} a esquivé l'attaque`;
-        result.infoList = [["Score obtenu",score]];
+        result.infoList.push(["Score obtenu",score]);
     }
     return result;
 }
@@ -361,6 +391,27 @@ function margeToDamageForNormCharacter(marge) {
     return damage;
 }
 
+function applyDamageToToken(damage, tokenId) {
+    const BLS_BAR = "bar3_value";
+    const SHOCK_BAR = "bar1_value";
+    const KO_BAR = "bar2_value";
+
+    let token = getObj("graphic",tokenId);
+    let bls = parseInt(token.get(BLS_BAR));
+    let shock = parseInt(token.get(SHOCK_BAR));
+    let ko = parseInt(token.get(KO_BAR));
+
+    token.set(BLS_BAR, bls + damage.bls);
+    token.set(SHOCK_BAR, shock + damage.choc);
+    if (damage.K) {
+        ko += ((ko%2) + 1) % 2;
+    }
+    if (damage.O) {
+        ko += ((ko%4) + 2) % 4;
+    }
+    token.set(KO_BAR, ko);
+}
+
 function damageToInfoList(damage) {
     if (damage.choc == 0) {
         return ["!","Aucun dommage"];
@@ -423,4 +474,16 @@ function sendResultToChat(who, result) {
         }
     })
     sendChat(who,content); 
+}
+
+function playSoundFX() {
+    let jukeBoxList = findObjs({ type: 'jukeboxtrack'});
+    jukeBoxList.forEach(jb => {
+        log(JSON.stringify(jb));
+    })
+    log('will play '+JSON.stringify(jukeBoxList[0]));
+    jukeBoxList[0].set({playing:true,softstop:false,level:30});
+    log('played');
+    //let jukeBox = getObj('jukeboxtrack',trackID);
+
 }
