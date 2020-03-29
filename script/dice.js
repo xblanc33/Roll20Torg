@@ -1,3 +1,9 @@
+var jukeBoxList;
+
+on("ready", function() {
+    jukeBoxList = findObjs({ type: 'jukeboxtrack'});
+});
+
 on("chat:message", function(msg) {
     if (msg.type == "api") {
         //log(msg.content);
@@ -183,12 +189,12 @@ function attack(parameters) {
     let armorMax = parseInt(getAttrByName(defender,"Armor1Value"));
     
 
-    //log(`${attackerName} attaque avec skill:${attackerSkill}, weapon:${weaponBase}, weaponMax:${weaponMax})`);
-    //log(`${defenderName} défend avec difficulty:${difficulty}, armorBase:${armorBase}, armorMax:${armorMax}, END:${toughness}`);
-    //log(`option (blocked:${blocked}), (exra:${extraDice})`);
+    log(`${attackerName} attaque avec skill:${attackerSkill}, weapon:${weaponBase}, weaponMax:${weaponMax})`);
+    log(`${defenderName} défend avec difficulty:${difficulty}, armorBase:${armorBase}, armorMax:${armorMax}, END:${toughness}`);
+    log(`option (blocked:${blocked}), (exra:${extraDice})`);
     let dice = rollTorgDice(blocked) + previousDice;
     if (extraDice) {
-        //log('extraDice');
+        log('extraDice');
         dice += rollTorgDice(blocked);
     }
     result.title = `${attackerName} attaque ${defenderName}`;
@@ -198,7 +204,7 @@ function attack(parameters) {
         result.subtitle = `${defenderName} a été touché`;
         result.infoList.push(["Score obtenu",score]);
         let damage;
-        //log(`has defender possibility : ${defenderHasPossibility}`);
+        log(`has defender possibility : ${defenderHasPossibility}`);
         if (defenderHasPossibility) {
             damage = computeDamagePossibilite(weaponBase, weaponMax, score, toughness, armorBase, armorMax);
         } else {
@@ -388,7 +394,7 @@ function margeToDamageForNormCharacter(marge) {
     }
     if (marge == 8) {
         damage.choc = 7;
-        damage.K0 = true;
+        damage.KO = true;
         damage.bls = 1;
     }
     if (marge == 9) {
@@ -455,28 +461,25 @@ function applyDamageToToken(damage, tokenId) {
     if (damage.K) {
         if (ko == 0) {
             ko = 1;
-        }
-        if (ko == 2) {
+        } else if (ko == 2) {
             ko = 3;
         }
     }
     if (damage.O) {
         if (ko == 0) {
             ko = 2;
-        }
-        if (ko == 1) {
+        } else if (ko == 1) {
             ko = 3;
         }
     }
     if (damage.KO) {
-        if (ko == 0) {
-            ko = 1;
-        } 
-        if (ko == 1) {
-            ko = 3;
-        }
-        if (ko == 2) {
-            ko = 3;
+        switch (ko) {
+            case 0 : ko = 1;
+                break;
+            case 1 : ko = 3;
+                break;
+            case 2 : ko = 3;
+                break;
         }
     }
     token.set(KO_BAR, ko);
@@ -498,6 +501,9 @@ function damageToInfoList(damage) {
         }
         if (damage.O) {
             damageString += "O";
+        }
+        if (damage.KO) {
+            damageString += "K/O";
         }
         damageString += " "+damage.choc;
         return ["Dommage",damageString];
@@ -617,9 +623,10 @@ function sendResultToChat(who, result) {
 }
 
 function playSoundFX(soundName) {
-    let jukeBoxList = findObjs({ type: 'jukeboxtrack'});
-    let sound = jukeBoxList.find(jb => jb.get('title') === soundName);
-    if (sound != undefined) {
-        sound.set({playing:true,softstop:false,level:30});
+    if (jukeBoxList) {
+        let sound = jukeBoxList.find(jb => jb.get('title') === soundName);
+        if (sound != undefined) {
+            sound.set({playing:true,softstop:false,level:30});
+        }
     }
 }
