@@ -21,11 +21,19 @@ on("chat:message", function(msg) {
         if (msg.content.indexOf("!tAttackNPC") !== -1) {
             log(msg.content);
             let parameters = getParameters(msg.content);
+            if (parameters.sound) {
+                log('sound:'+parameters.sound);
+                playSoundFX(parameters.sound);
+            }
             let res = attackNPC(parameters);
             sendResultToChat(msg.who, res);
         }
         if (msg.content.indexOf("!tAttackPlayer") !== -1) {
             let parameters = getParameters(msg.content);
+            if (parameters.sound) {
+                log('sound:'+parameters.sound);
+                playSoundFX(parameters.sound);
+            }
             let res = attackPlayer(parameters);
             sendResultToChat(msg.who, res);
         }
@@ -476,14 +484,10 @@ function sendResultToChat(who, result) {
     sendChat(who,content); 
 }
 
-function playSoundFX() {
+function playSoundFX(soundName) {
     let jukeBoxList = findObjs({ type: 'jukeboxtrack'});
-    jukeBoxList.forEach(jb => {
-        log(JSON.stringify(jb));
-    })
-    log('will play '+JSON.stringify(jukeBoxList[0]));
-    jukeBoxList[0].set({playing:true,softstop:false,level:30});
-    log('played');
-    //let jukeBox = getObj('jukeboxtrack',trackID);
-
+    let sound = jukeBoxList.find(jb => jb.get('title') === soundName);
+    if (sound != undefined) {
+        sound.set({playing:true,softstop:false,level:30});
+    }
 }
