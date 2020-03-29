@@ -155,6 +155,7 @@ function diceToScore(dice) {
 
 function attackNPC(parameters) {
     let result = {};
+    let attackerName = parameters.name;
     let attackerSkill = parameters.skill;
     let difficulty = parameters.diff;
     let weaponBase = parameters.weaponBase;
@@ -171,10 +172,11 @@ function attackNPC(parameters) {
     let npcName = getAttrByName(npcId,"Name");
 
     let dice = rollTorgDice();
+    result.title = `${attackerName} attaque ${npcName}`;
     result.infoList = [["Dès obtenu", dice]];
     let score = diceToScore(dice);
     if (isSuccess(score, attackerSkill, difficulty)) {
-        result.title = `${npcName} a été touché`;
+        result.subtitle = `${npcName} a été touché`;
         result.infoList.push(["Score obtenu",score]);
         let damage;
         if (targetHasPossibility) {
@@ -185,7 +187,7 @@ function attackNPC(parameters) {
         applyDamageToToken(damage, tokenId);
         result.infoList.push(damageToInfoList(damage));
     } else {
-        result.title = `${npcName} a esquivé l'attaque`;
+        result.subtitle = `${npcName} a esquivé l'attaque`;
         result.infoList.push(["Score obtenu",score]);
     }
     return result;
@@ -193,23 +195,26 @@ function attackNPC(parameters) {
 
 function attackPlayer(parameters) {
     let result = {};
+    let attackerName = parameters.name;
     let attackerSkill = parameters.skill;
     let difficulty = parameters.diff;
     let weaponBase = parameters.weaponBase;
     let weaponMax = parameters.weaponMax;
-    let playerToughness = parameters.playerTOU;
+    let playerToughness = parameters.targetTOU;
+    let playerName = parameters.targetName;
     log(`attackPlayer(${attackerSkill}, ${difficulty}, ${playerName}, ${weaponBase}, ${weaponMax}, ${playerToughness})`);
+    result.title = `${attackerName} attaque ${playerName}`;
     let dice = rollTorgDice();
     result.infoList = [["Dès obtenu", dice]];
     let score = diceToScore(dice);
     if (isSuccess(score, attackerSkill, difficulty)) {
-        result.title = `${playerName} a été touché`;
+        result.subtitle = `${playerName} a été touché`;
         result.infoList.push(["Score obtenu",score]);
         let damage = computeDamagePossibilite(weaponBase, weaponMax, score, playerToughness);
         log(JSON.stringify(damage));
         result.infoList.push(damageToInfoList(damage));
     } else {
-        result.title = `${playerName} a esquivé l'attaque`;
+        result.subtitle = `${playerName} a esquivé l'attaque`;
         result.infoList.push(["Score obtenu",score]);
     }
     return result;
