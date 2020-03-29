@@ -1,6 +1,6 @@
 on("chat:message", function(msg) {
     if (msg.type == "api") {
-        log(msg.content);
+        //log(msg.content);
         if(msg.content.indexOf("!tDice") !== -1) {
             let dice = rollTorgDice().toString();
             let res = {
@@ -21,14 +21,14 @@ on("chat:message", function(msg) {
         if (msg.content.indexOf("!tAttack") !== -1) {
             let parameters = getParameters(msg.content);
             if (parameters.sound) {
-                log('sound:'+parameters.sound);
+                //log('sound:'+parameters.sound);
                 playSoundFX(parameters.sound);
             }
             let res = attack(parameters);
             sendResultToChat(msg.who, res);
         }
         if (msg.content.indexOf("!tResetToken") !== -1) {
-            log(msg.content);
+            //log(msg.content);
             let tokenId = msg.content.split("--tokenId")[1].trim();
             if (tokenId) {
                 resetToken(tokenId);
@@ -183,12 +183,12 @@ function attack(parameters) {
     let armorMax = parseInt(getAttrByName(defender,"Armor1Value"));
     
 
-    log(`${attackerName} attaque avec skill:${attackerSkill}, weapon:${weaponBase}, weaponMax:${weaponMax})`);
-    log(`${defenderName} défend avec difficulty:${difficulty}, armorBase:${armorBase}, armorMax:${armorMax}, END:${toughness}`);
-    log(`option (blocked:${blocked}), (exra:${extraDice})`);
+    //log(`${attackerName} attaque avec skill:${attackerSkill}, weapon:${weaponBase}, weaponMax:${weaponMax})`);
+    //log(`${defenderName} défend avec difficulty:${difficulty}, armorBase:${armorBase}, armorMax:${armorMax}, END:${toughness}`);
+    //log(`option (blocked:${blocked}), (exra:${extraDice})`);
     let dice = rollTorgDice(blocked) + previousDice;
     if (extraDice) {
-        log('extraDice');
+        //log('extraDice');
         dice += rollTorgDice(blocked);
     }
     result.title = `${attackerName} attaque ${defenderName}`;
@@ -198,7 +198,7 @@ function attack(parameters) {
         result.subtitle = `${defenderName} a été touché`;
         result.infoList.push(["Score obtenu",score]);
         let damage;
-        log(`has defender possibility : ${defenderHasPossibility}`);
+        //log(`has defender possibility : ${defenderHasPossibility}`);
         if (defenderHasPossibility) {
             damage = computeDamagePossibilite(weaponBase, weaponMax, score, toughness, armorBase, armorMax);
         } else {
@@ -227,19 +227,19 @@ function isSuccess(score, skill, difficulty) {
 
 function computeDamagePossibilite(weaponBase, weaponMax, score, toughness, armorBase, armorMax) {
     let attack = weaponBase + score;
-    log(`attack:${attack}`);
+    //log(`attack:${attack}`);
     if (weaponMax) {
         attack = Math.min(attack, weaponMax);
-        log(`attack:${attack} with weaponMax (${weaponMax})`);
+        //log(`attack:${attack} with weaponMax (${weaponMax})`);
     }
     let defense = toughness + armorBase;
-    log(`defense:${defense}`);
+    //log(`defense:${defense}`);
     if (armorMax) {
         defense = Math.min(defense, armorMax);
-        log(`defense:${defense} with armorMax (${armorMax})`);
+        //log(`defense:${defense} with armorMax (${armorMax})`);
     }
     let marge = attack - defense;
-    log(`marge:${marge}`);
+    //log(`marge:${marge}`);
     return margeToDamageForCharacterWithPossibility(marge);
 }
 
@@ -516,7 +516,7 @@ function updateTokenGraphicalAspec(tokenId) {
     let shockMax = parseInt(token.get(SHOCK_MAX));
     let ko = parseInt(token.get(KO_BAR));
 
-    log(`update graphical (bls:${bls}) (shock:${shock})`)
+    //log(`update graphical (bls:${bls}) (shock:${shock})`)
 
     if (bls >= 4) {
         token.set("status_dead", true);
@@ -544,7 +544,7 @@ function updateTokenGraphicalAspec(tokenId) {
 
 
 function resetToken(tokenId) {
-    log(`resetToken: ${tokenId}`);
+    //log(`resetToken: ${tokenId}`);
     const BLS_BAR = "bar3_value";
     const BLS_MAX = "bar3_max";
     const SHOCK_BAR = "bar1_value";
