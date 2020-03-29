@@ -618,7 +618,8 @@ function sendResultToChat(who, result) {
     })
     setTimeout(() => {
         sendChat(who,content); 
-    },250)
+    },250);
+    log('attack is done');
     
 }
 
