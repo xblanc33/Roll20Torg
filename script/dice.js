@@ -31,7 +31,7 @@ on("chat:message", function(msg) {
                 playSoundFX(parameters.sound);
             }
             let res = attack(parameters);
-            sendResultToChat(msg.who, res);
+            sendResultToChat("", res);
         }
         if (msg.content.indexOf("!tResetToken") !== -1) {
             //log(msg.content);
@@ -582,19 +582,20 @@ function sendResultToChat(who, result) {
     const TORG_COLOR="#e7f106";
     const COLOR_EVEN="#b6ab91";
     const COLOR_ODD="#cec7b6";
+    const DIV_CLEAR="<div class='spacer'></div><div style='clear: both; margin-left: -7px; border-radius: 5px';>";
     const DIV_HEADER = "<div style='font-family: Impact; font-size: 1.2em; line-height: 1.2em; font-weight: normal; font-style: normal; font-variant: normal; letter-spacing: 2px; text-align: center; vertical-align: middle; margin: 0px; padding: 2px 0px 0px 0px; border: 1px solid #000000; border-radius: 5px 5px 0px 0px; color: #000000; text-shadow: -1px -1px 0 #ffffff , 1px -1px 0 #ffffff , -1px 1px 0 #ffffff , 1px 1px 0 #ffffff; background-color: "+ TORG_COLOR +"; background-image: linear-gradient( rgba( 255 , 255 , 255 , .3 ) , rgba( 255 , 255 , 255 , 0 ) )';>";
     const SPAN_SUBTITLE = "<span style='font-family: tahoma; font-size: 13px; font-weight: normal; font-style: normal; font-variant: normal; letter-spacing: 1px';>";
     const DIV_LINE = "<div style='color: #000000; background-color: |color|; line-height: 1.1em; vertical-align: middle; font-family: helvetica; font-size: 14px; font-weight: normal; font-style: normal; text-align: left; padding: 4px 5px 2px 5px; border-left: 1px solid #000000; border-right: 1px solid #000000;'>";
     const DIV_LAST_LINE = "<div style='color: #000000; background-color: |color|; line-height: 1.1em; vertical-align: middle; font-family: helvetica; font-size: 14px; font-weight: normal; font-style: normal; text-align: left; padding: 4px 5px 2px 5px; border-left: 1px solid #000000; border-right: 1px solid #000000; border-bottom: 1px solid #000000; border-radius: 0px 0px 5px 5px;'>";
 
-    let content = DIV_HEADER + result.title + "<br/>";
+    let content = DIV_CLEAR + DIV_HEADER + result.title + "<br/>";
     
     if (result.subtitle !== undefined) {
         content += SPAN_SUBTITLE + result.subtitle + "</span>";
     }
-        
-    content += "</div>";
-
+     
+     content += "</div>";
+     
     result.infoList.forEach( (info, i ) => {
         let color = COLOR_ODD;
         if ((i % 2) || result.infoList.length == 1) {
@@ -616,8 +617,11 @@ function sendResultToChat(who, result) {
                         + "</div>"
         }
     })
+
+    content += "</div>";
+
     setTimeout(() => {
-        sendChat(who,content); 
+        sendChat("","/desc " + content); 
     },250);
     log('attack is done');
     
