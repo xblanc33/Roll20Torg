@@ -10,7 +10,7 @@ on("chat:message", function(msg) {
         if(msg.content.indexOf("!tDice") !== -1) {
             let dice = rollTorgDice().toString();
             let res = {
-                title:'Jet de dès',
+                title:`${msg.who} jette un dès`,
                 infoList:[["resultat",dice]]
             }
             sendResultToChat(msg.who, res);
@@ -19,7 +19,7 @@ on("chat:message", function(msg) {
             let dice = rollTorgDice();
             let score = diceToScore(dice).toString();
             let res = {
-                title:'Jet de Score',
+                title:`${msg.who} obtient un score`,
                 infoList:[["resultat",score]]
             }
             sendResultToChat(msg.who, res);
@@ -206,9 +206,9 @@ function attack(parameters) {
         let damage;
         log(`has defender possibility : ${defenderHasPossibility}`);
         if (defenderHasPossibility) {
-            damage = computeDamagePossibilite(weaponBase, weaponMax, score, toughness, armorBase, armorMax);
+            damage = computeDamagePossibilite(weaponBase, weaponMax, score-distance, toughness, armorBase, armorMax);
         } else {
-            damage = computeDamageNorm(weaponBase, weaponMax, score, toughness, armorBase, armorMax);
+            damage = computeDamageNorm(weaponBase, weaponMax, score-distance, toughness, armorBase, armorMax);
         }
         applyDamageToToken(damage, defenderTokenId);
         updateTokenGraphicalAspec(defenderTokenId);
